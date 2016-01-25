@@ -31,6 +31,47 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         final SharedPreferences prefLastDate = getSharedPreferences("JsonLastDatePREF", Context.MODE_PRIVATE);
+
+        File file = new File(getCacheDir(), "image.json");
+        if (!file.exists()) {
+            try {
+                Log.e("check", "file doesnot exits in cache");
+                Resources res = getResources();
+                InputStream inputStream = res.openRawResource(R.raw.du_detail);
+
+                byte[] b = new byte[inputStream.available()];
+
+                inputStream.read(b);
+
+                Gson gson = new Gson();
+                mDetail = gson.fromJson(new String(b), Detail.class);
+                Log.e("aa", mDetail.toString() );
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.e("check", "file  exits in cache");
+            File tempFile = new File(getCacheDir(), "image.json");
+            String strLine = "";
+            StringBuilder text = new StringBuilder();
+
+            try {
+                FileReader fReader = new FileReader(tempFile.getAbsoluteFile());
+                BufferedReader bReader = new BufferedReader(fReader);
+                while ((strLine = bReader.readLine()) != null) {
+                    text.append(strLine + "\n");
+                }
+                Gson gson = new Gson();
+                mDetail = gson.fromJson(new String(text), Detail.class);
+                Log.e("aa", mDetail.toString() );
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+//        Log.e("xsgfhjsdg", (getData(new Detail())).getLast_update());
         RestClient restClient = new RestClient();
         Call<Detail> detailCall = restClient.getDUService().getDetail("du_details");
         detailCall.enqueue(new Callback<Detail>() {
@@ -38,45 +79,6 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Response<Detail> response) {
                 if (prefLastDate.getString("DuDetail", "0").equals(response.body().getLast_update())) {
 
-                    File file = new File(getCacheDir(), "image.json");
-                    if (!file.exists()) {
-                        try {
-                            Log.e("check", "file doesnot exits in cache");
-                            Resources res = getResources();
-                            InputStream inputStream = res.openRawResource(R.raw.du_detail);
-
-                            byte[] b = new byte[inputStream.available()];
-
-                            inputStream.read(b);
-
-                            Gson gson = new Gson();
-                            mDetail = gson.fromJson(new String(b), Detail.class);
-                            Log.e("aa", mDetail.toString() );
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        Log.e("check", "file  exits in cache");
-                        File tempFile = new File(getCacheDir(), "image.json");
-                        String strLine = "";
-                        StringBuilder text = new StringBuilder();
-
-                        try {
-                            FileReader fReader = new FileReader(tempFile.getAbsoluteFile());
-                            BufferedReader bReader = new BufferedReader(fReader);
-                            while ((strLine = bReader.readLine()) != null) {
-                                text.append(strLine + "\n");
-                            }
-                            Gson gson = new Gson();
-                            mDetail = gson.fromJson(new String(text), Detail.class);
-                            Log.e("aa", mDetail.toString() );
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
 
                 } else {
                     Log.e("check", "do something");
@@ -105,5 +107,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }
